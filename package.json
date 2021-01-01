@@ -1,0 +1,15 @@
+{
+  "name": "canvas-editor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "browser-sync start --server --https --files \"*.css, *.html, *.js\""
+  },
+  "author": "BenThomson",
+  "license": "MIT",
+  "dependencies": {
+    "browser-sync": "^2.26.13"
+  }
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Editor</title>
+  <script src="glfx.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <div id="app" class="container" @mouseup="startDrag = false" @touchend="startDrag = false">
+    <div v-show="!img">
+      <h2 class="text-center mt-3">图形编辑器</h2>
+      <hr>
+      <div
+        class="input-container border-secondary w-80 my-3 mx-auto d-flex justify-content-center align-items-center position-relative"
+        :class="{dropping: isDropping}" @dragover="isDropping = true" @drop="isDropping = false"
+        @dragleave="isDropping = false">
+        <p class="fw-bold">拖放文件或点击添加图片</p>
+        <input id="image_upload" type="file" accept="image/*" ref="file" @change="readImage">
+      </div>
+      <p class="fw-light fst-italic">使用 HTML Canvas 对添加的图片进行旋转、扭曲矫正、亮度、对比度、锐化等参数进行编辑。基于 <a
+          href="http://evanw.github.io/glfx.js/">glfx.js</a> 框架实现大部分功能。</p>
+    </div>
+
+    <div v-show="img" class="container">
+      <div class="row">
+        <div class="col-12 col-lg-8 my-3">
+          <div class="canvas-container position-relative d-inline-block" ref="container" @mousemove="move" @touchmove="move">
+            <canvas class="mw-100 d-block" ref="temp"></canvas>
+            <div class="dot a" @mousedown="setDrag" @touchstart="setDrag" ref="a" v-show="showSkewController"></div>
+            <div class="dot b" @mousedown="setDrag" @touchstart="setDrag" ref="b" v-show="showSkewController"></div>
+            <div class="dot c" @mousedown="setDrag" @touchstart="setDrag" ref="c" v-show="showSkewController"></div>
+            <div class="dot d" @mousedown="setDrag" @touchstart="setDrag" ref="d" v-show="showSkewController"></div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4 mt-3 d-flex flex-column align-items-center">
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-success btn-sm" @click="downloadImg">导出</button>
+            <button type="button" class="btn btn-outline-danger btn-sm" @click="setCanvas(img)">重置所有</button>
+            <button type="button" class="btn btn-outline-danger btn-sm" @click="deleteImg">删除图片</button>
+          </div>
+          <div class="editor-container w-100  p-3">
+            <div class="d-flex justify-content-between mb-3">
+              <div v-show="!showSkewController">
+                <span>改变方向：</span>
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="changeDirection(90)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                    class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                    <path
+                      d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="changeDirection(-90)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                    class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z" />
+                    <path
+                      d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z" />
+                  </svg>
+                  </svg>
+                </button>
+              </div>
+
+              <button type="button" class="btn btn-primary btn-sm" @click="initSkewController"
+                v-show="!showSkewController">扭曲矫正</button>
+
+              <div v-show="showSkewController && !skewReady">
+                <p>设定锚点的初始位置：</p>
+                <button type="button" class="btn btn-success btn-sm" @click="skewReady = true">下一步</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" @click="resetCoordinate">重置</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" @click="cancelSkew">取消</button>
+              </div>
+
+              <div v-show="showSkewController && skewReady">
+                <p>矫正图片：</p>
+                <button type="button" class="btn btn-success btn-sm" @click="finishSkew">完成</button>
+                <button type="button" class="btn btn-primary btn-sm" @click="skewToBoundary">
+                  置界 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-bounding-box-circles" viewBox="0 0 16 16">
+                    <path
+                      d="M2 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM0 2a2 2 0 0 1 3.937-.5h8.126A2 2 0 1 1 14.5 3.937v8.126a2 2 0 1 1-2.437 2.437H3.937A2 2 0 1 1 1.5 12.063V3.937A2 2 0 0 1 0 2zm2.5 1.937v8.126c.703.18 1.256.734 1.437 1.437h8.126a2.004 2.004 0 0 1 1.437-1.437V3.937A2.004 2.004 0 0 1 12.063 2.5H3.937A2.004 2.004 0 0 1 2.5 3.937zM14 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM2 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" @click="restSkew">重置变形</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" @click="cancelSkew">取消</button>
+              </div>
+            </div>
+            <div>
+              <label for="brightness" class="form-label d-block">亮度：{{ brightness }}</label>
+              <input type="range" id="brightness" class="form-range" min="-1" max="1" step="0.01"
+                v-model:value.number="brightness" @change="filter">
+            </div>
+            <div>
+              <label for="contrast" class="form-label d-block">对比度：{{ contrast }}</label>
+              <input type="range" id="contrast" class="form-range" min="-1" max="1" step="0.01"
+                v-model:value.number="contrast" @change="filter">
+            </div>
+            <div>
+              <label for="radius" class="form-label d-block">锐化半径：{{ radius }}</label>
+              <input type="range" id="radius" class="form-range" min="0" max="200" v-model:value.number="radius"
+                @change="filter">
+            </div>
+            <div>
+              <label for="strength" class="form-label d-block">锐化强度：{{ strength }}</label>
+              <input type="range" id="strength" class="form-range" min="0" max="5" step="0.01"
+                v-model:value.number="strength" @change="filter">
+            </div>
+            <div>
+              <label for="rotate" class="form-label d-block">旋转角度：{{ rotate }}</label>
+              <input type="range" id="strength" class="form-range" min="-45" max="45" step="0.01"
+                v-model:value.number="rotate" @input="rotateImage(rotate)">
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

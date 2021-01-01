@@ -1,0 +1,71 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.input-container {
+  height: 300px;
+  border: 2px dashed;
+}
+
+.dropping,
+.input-container:hover {
+  background: rgba(108, 117, 125, 0.5);
+  color: white;
+}
+
+input[type="file"] {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.canvas-container {
+  border: 2px dashed rgba(108, 117, 125);
+}
+
+canvas {
+  max-height: 90vh;
+}
+
+@media screen and (max-width: 992px) {
+  canvas {
+    max-height: 60vh;
+  }
+  .editor-container {
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+}
+
+.dot {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.a {
+  background-color: rgb(30, 255, 0);
+  border: 5px solid rgba(255, 255, 255, 0.8);
+}
+.b {
+  background-color: rgb(255, 81, 0);
+  border: 5px solid rgba(255, 255, 255, 0.8);
+}
+.c {
+  background-color: rgb(2, 2, 255);
+  border: 5px solid rgba(255, 255, 255, 0.8);
+}
+.d {
+  background-color: rgb(255, 0, 242);
+  border: 5px solid rgba(255, 255, 255, 0.8);
+}
