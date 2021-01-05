@@ -1,6 +1,4 @@
-let file = null;
-
-new Vue({
+let vm = new Vue({
     el: '#app',
     data: {
         isDropping: false,
@@ -18,6 +16,7 @@ new Vue({
         radius: 5,
         strength: 0,
         rotate: 0,
+        // skewButtonDisabled: true,
         showSkewController: false,
         controllerRadius: 15,
         skewReady: false,
@@ -109,11 +108,11 @@ new Vue({
                 y = 0;
             if (event.type === 'touchmove') {
                 let touch = event.touches[0];
-                x = touch.pageX - containerX - this.controllerRadius/2;
-                y = touch.pageY - containerY - this.controllerRadius/2;
+                x = touch.pageX - containerX - this.controllerRadius / 2;
+                y = touch.pageY - containerY - this.controllerRadius / 2;
             } else {
-                x = event.pageX - containerX - this.controllerRadius/2;
-                y = event.pageY - containerY - this.controllerRadius/2;
+                x = event.pageX - containerX - this.controllerRadius / 2;
+                y = event.pageY - containerY - this.controllerRadius / 2;
             }
 
             // 限制 dot 移动范围
@@ -176,7 +175,7 @@ new Vue({
             this.ctx.drawImage(this.fxCanvas, 0, 0, this.width, this.height);
         },
         skewToBoundary() {
-            let { width, height } = this.getELemCoords(this.$refs.container)
+            let { width, height } = this.getELemCoords(this.$refs.temp)
             this.$refs.a.style.top = `0px`;
             this.$refs.a.style.left = `0px`;
             this.$refs.b.style.top = `0px`;
@@ -197,6 +196,25 @@ new Vue({
             ];
             console.log(coordinate);
             this.skew(this.originCoordinate, coordinate)
+
+            // Ref: https://docs.opencv.org/4.2.0/dd/d52/tutorial_js_geometric_transformations.html
+
+            // let scaleFactor = parseInt
+
+            // let coordinate = [0, 0, width - this.controllerRadius, 0, width - this.controllerRadius, height - this.controllerRadius, 0, height - this.controllerRadius];
+
+            // let src = cv.imread(this.$refs.temp);
+            // let dst = new cv.Mat();
+            // let dsize = new cv.Size(this.$refs.temp.width, this.$refs.temp.height);
+            // let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, this.originCoordinate);
+            // let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, coordinate);
+            // let M = cv.getPerspectiveTransform(srcTri, dstTri);
+            // // You can try more different parameters
+            // cv.warpPerspective(src, dst, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+            // cv.imshow(this.$refs.temp, dst);
+            // src.delete(); dst.delete(); M.delete(); srcTri.delete(); dstTri.delete();
+
+
         },
         restSkew() {
             this.$refs.a.style.left = `${this.originCoordinate[0]}px`;
@@ -252,3 +270,7 @@ new Vue({
         this.ctx = this.canvas.getContext('2d');
     }
 })
+
+// function onOpenCvReady() {
+//     vm.$data.skewButtonDisabled = false;
+// }

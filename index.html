@@ -74,6 +74,8 @@
                 </button>
               </div>
 
+              <!-- <button type="button" class="btn btn-primary btn-sm" @click="initSkewController"
+                v-show="!showSkewController" :disabled="skewButtonDisabled">{{ skewButtonDisabled ? '加载模块中' : '扭曲矫正' }}</button> -->
               <button type="button" class="btn btn-primary btn-sm" @click="initSkewController"
                 v-show="!showSkewController">扭曲矫正</button>
 
@@ -133,6 +135,7 @@
   </div>
 
   <script src="app.js"></script>
+  <!-- <script defer src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script> -->
 </body>
 
 </html>
